@@ -46,7 +46,7 @@
 
 Ответ:
 
-SELECT attname, avg_width FROM pg_stats WHERE tablename='orders' ORDER BY avg_width DESC LIMIT 1;
+`SELECT attname, avg_width FROM pg_stats WHERE tablename='orders' ORDER BY avg_width DESC LIMIT 1;`
 
 ![alt text](https://github.com/vmmaltsev/screenshot3/blob/main/Screenshot_51.png)
 
@@ -64,6 +64,7 @@ SELECT attname, avg_width FROM pg_stats WHERE tablename='orders' ORDER BY avg_wi
 
 Для разбиения таблицы orders на две таблицы orders_1 и orders_2 в соответствии с условием (price>499 и price<=499 соответственно), можно использовать следующую SQL-транзакцию:
 
+```
 BEGIN;
 
 CREATE TABLE orders_1 AS SELECT * FROM orders WHERE price > 499;
@@ -72,6 +73,7 @@ CREATE TABLE orders_2 AS SELECT * FROM orders WHERE price <= 499;
 DROP TABLE orders;
 
 COMMIT;
+```
 
 В этой транзакции сначала создаются две новые таблицы orders_1 и orders_2 путем выбора записей из исходной таблицы orders в соответствии с условием цены. Затем исходная таблица orders удаляется. Все эти операции выполняются в рамках одной транзакции, чтобы обеспечить консистентность данных.
 
@@ -81,6 +83,7 @@ COMMIT;
 
 В случае с таблицей orders, можно было с самого начала настроить разбиение на партиции по столбцу price, чтобы автоматически разделить данные на две партиции в зависимости от значения цены. Это выглядит примерно так:
 
+```
 CREATE TABLE orders (
     id integer NOT NULL,
     title character varying(80) NOT NULL,
@@ -89,6 +92,7 @@ CREATE TABLE orders (
 
 CREATE TABLE orders_1 PARTITION OF orders FOR VALUES FROM (500) TO (MAXVALUE);
 CREATE TABLE orders_2 PARTITION OF orders FOR VALUES FROM (MINVALUE) TO (500);
+```
 
 В этом примере создается родительская таблица orders, которая разбивается на партиции по диапазону значений столбца price. Затем создаются две партиционные таблицы orders_1 и orders_2, которые хранят записи с price > 499 и price <= 499 соответственно.
 
@@ -107,19 +111,23 @@ CREATE TABLE orders_2 PARTITION OF orders FOR VALUES FROM (MINVALUE) TO (500);
 
 Нужно открыть файл бэкапа в текстовом редакторе и найти строку, которая создает таблицу, для которой нужно добавить ограничение. Это будет выглядеть примерно так:
 
+```
 CREATE TABLE public.orders (
   id integer NOT NULL,
   title character varying(80) NOT NULL,
   price integer DEFAULT 0
 );
+```
 
 Нужно добавить UNIQUE после определения столбца title, чтобы сделать его уникальным:
 
+```
 CREATE TABLE public.orders (
   id integer NOT NULL,
   title character varying(80) NOT NULL UNIQUE,
   price integer DEFAULT 0
 );
+```
 
 Теперь при восстановлении базы данных из этого файла бэкапа, столбец title будет иметь ограничение уникальности.
 
